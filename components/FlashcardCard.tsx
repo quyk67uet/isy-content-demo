@@ -173,7 +173,7 @@ export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) 
               </div>
             )}
             <div className="mt-4 text-center text-sm text-gray-500 italic">
-              Nhấn "Xem đáp án" để xem câu trả lời
+              Nhấn &quot;Xem đáp án&quot; để xem câu trả lời
             </div>
           </div>
         ) : (

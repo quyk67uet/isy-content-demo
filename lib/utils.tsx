@@ -86,7 +86,7 @@ export function formatDurationFromSeconds(totalSeconds: number): string {
   const totalMinutes = Math.floor(totalSeconds / 60);
   const minutes = totalMinutes % 60;
   const hours = Math.floor(totalMinutes / 60);
-  let parts: string[] = [];
+  const parts: string[] = [];
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
@@ -176,8 +176,7 @@ function cleanMathArrows(text: string): string {
  * Handles the double backslash issue from JSON to proper LaTeX rendering
  */
 export const parseLatex = (
-  text: string | null | undefined,
-  disableTable = false
+  text: string | null | undefined
 ): React.ReactNode => {
   if (text === null || text === undefined || typeof text !== "string") {
     return text;
@@ -224,7 +223,7 @@ export const parseLatex = (
       remarkPlugins={[remarkBreaks, remarkMath]}
       rehypePlugins={[rehypeRaw, [rehypeKatex, { throwOnError: false }]]}
       components={{
-        img: ({ node, ...props }) => (
+        img: ({ ...props }) => (
           <Image
             {...props}
             src={props.src || ""}
@@ -234,19 +233,19 @@ export const parseLatex = (
             className="max-h-32 w-auto rounded shadow border object-contain mx-auto my-4"
           />
         ),
-        table: ({ node, ...props }) => (
+        table: ({ ...props }) => (
           <table
             {...props}
             className="border-collapse border border-gray-300 mx-auto my-4"
           />
         ),
-        th: ({ node, ...props }) => (
+        th: ({ ...props }) => (
           <th
             {...props}
             className="border border-gray-300 px-2 py-1 text-center"
           />
         ),
-        td: ({ node, ...props }) => (
+        td: ({ ...props }) => (
           <td
             {...props}
             className="border border-gray-300 px-2 py-1 text-center"
