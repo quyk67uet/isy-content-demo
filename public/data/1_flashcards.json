@@ -1,0 +1,132 @@
+[
+  {
+    "flashcard_type": "Khái niệm/Định lý/Công thức",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Nhận biết",
+    "question": "Nêu cách giải phương trình tích có dạng $(ax + b)(cx + d) = 0$ (với $a \\ne 0$ và $c \\ne 0$).",
+    "answer": "Để giải phương trình tích $(ax + b)(cx + d) = 0$, ta giải hai phương trình bậc nhất:\n\n1. $ax + b = 0$\n2. $cx + d = 0$\n\nTất cả các nghiệm của hai phương trình trên là nghiệm của phương trình đã cho.",
+    "explanation": "Một tích bằng 0 khi và chỉ khi ít nhất một trong các thừa số của nó bằng 0. Đây là nguyên tắc cơ bản để giải phương trình tích.",
+    "hint": "Tích của hai số bằng 0 khi nào?"
+  },
+  {
+    "flashcard_type": "Điền vào chỗ trống",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Nhận biết",
+    "question": "Điền vào chỗ trống để hoàn thành khẳng định đúng: \n\nPhương trình $(x - 5)(2x + 4) = 0$ có các nghiệm là nghiệm của hai phương trình $x - 5 = 0$ hoặc _________.",
+    "answer": "$2x + 4 = 0$",
+    "explanation": "Theo cách giải phương trình tích, ta lần lượt cho mỗi thừa số bằng 0 để tìm tất cả các nghiệm.",
+    "hint": "Một phương trình tích tương đương với các phương trình nào?"
+  },
+  {
+    "flashcard_type": "Trả lời ngắn",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Nhận biết",
+    "question": "Để giải phương trình $(3x - 6)(x + 1) = 0$, ta cần giải hai phương trình bậc nhất nào?",
+    "answer": "Ta cần giải hai phương trình: $3x - 6 = 0$ và $x + 1 = 0$.",
+    "explanation": "Việc giải phương trình tích được quy về giải các phương trình bậc nhất có thừa số tương ứng bằng 0.",
+    "hint": "Hãy cho từng thừa số của phương trình tích bằng 0."
+  },
+  {
+    "flashcard_type": "Trả lời ngắn",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Thông hiểu",
+    "question": "Tìm tập nghiệm của phương trình: $(x - 7)(x + 2) = 0$.",
+    "answer": "**Bước 1: Lập các phương trình thành phần**\n\n$$ \\begin{aligned} (x - 7)(x + 2) &= 0 \\\\ x - 7 &= 0 \\text{ hoặc } x + 2 &= 0 \\end{aligned} $$\n\n**Bước 2: Giải và kết luận**\n\n$$ \\begin{aligned} x &= 7 \\\\ x &= -2 \\end{aligned} $$\n\nVậy tập nghiệm của phương trình là $S = \\{7; -2\\}$.",
+    "explanation": "Ta áp dụng quy tắc giải phương trình tích bằng cách cho mỗi thừa số bằng 0 và tìm các giá trị của x.",
+    "hint": "Phương trình có mấy thừa số? Cho từng thừa số bằng 0."
+  },
+  {
+    "flashcard_type": "Trắc nghiệm",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Nhận biết",
+    "question": "Trong các phương trình sau, phương trình nào là phương trình tích?",
+    "choices": [
+      { "choice_id": "A", "content": "$x^2 + 5x + 6 = 0$" },
+      { "choice_id": "B", "content": "$(x - 3)(2x + 1) = 0$" },
+      { "choice_id": "C", "content": "$x + 1 = 5$" },
+      { "choice_id": "D", "content": "$\\frac{x}{x-1} = 2$" }
+    ],
+    "answer": "B",
+    "explanation": "Phương trình tích có dạng $A(x)B(x) = 0$, trong đó vế trái là tích của các biểu thức chứa ẩn và vế phải bằng 0. Phương trình $(x - 3)(2x + 1) = 0$ có dạng này.",
+    "hint": "Phương trình tích có dạng một vế là tích các nhân tử, vế còn lại bằng 0."
+  },
+  {
+    "flashcard_type": "Trắc nghiệm",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Thông hiểu",
+    "question": "Tập nghiệm của phương trình $(2x + 1)(x - 3) = 0$ là:",
+    "choices": [
+      { "choice_id": "A", "content": "$S = \\{ \\frac{1}{2}; 3 \\}$" },
+      { "choice_id": "B", "content": "$S = \\{ -\\frac{1}{2}; -3 \\}$" },
+      { "choice_id": "C", "content": "$S = \\{ -\\frac{1}{2}; 3 \\}$" },
+      { "choice_id": "D", "content": "$S = \\{ \\frac{1}{2}; -3 \\}$" }
+    ],
+    "answer": "C",
+    "explanation": "Ta có:\n$$ \\begin{aligned} (2x + 1)(x - 3) &= 0 \\\\ 2x + 1 &= 0 \\text{ hoặc } x - 3 &= 0 \\\\ 2x &= -1 \\text{ hoặc } x &= 3 \\\\ x &= -\\frac{1}{2} \\text{ hoặc } x &= 3 \\end{aligned} $$\nVậy tập nghiệm là $S = \\{ -\\frac{1}{2}; 3 \\}$.",
+    "hint": "Giải hai phương trình $2x+1=0$ và $x-3=0$."
+  },
+  {
+    "flashcard_type": "Tìm lỗi sai",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Thông hiểu",
+    "question": "Một bạn học sinh giải phương trình $(x+4)(x-5)=0$ như sau:\n\n**Bước 1:** $x+4=0$ hoặc $x-5=0$\n**Bước 2:** $x = 4$ hoặc $x = 5$\n**Bước 3:** Vậy tập nghiệm là $S = \\{4; 5\\}$.\n\nLời giải trên sai ở bước nào?",
+    "answer": "Lời giải sai ở **Bước 2** và dẫn đến **Bước 3** sai.\n\n**Sửa lại:**\nTừ $x+4=0$, ta phải có $x = -4$. Do đó, tập nghiệm đúng là $S = \\{-4; 5\\}$.",
+    "explanation": "Lỗi sai cơ bản trong bài giải là chuyển vế nhưng không đổi dấu. Khi chuyển $+4$ từ vế trái sang vế phải, ta phải đổi thành $-4$.",
+    "hint": "Kiểm tra lại quy tắc chuyển vế đổi dấu."
+  },
+  {
+    "flashcard_type": "Tìm lỗi sai",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Vận dụng",
+    "question": "Để giải phương trình $x^2 - 9 = 2(x+3)$, một bạn đã trình bày:\n\n**Bước 1:** $(x-3)(x+3) = 2(x+3)$\n**Bước 2:** Chia cả hai vế cho $(x+3)$, ta được $x-3=2$\n**Bước 3:** $x=5$\n**Bước 4:** Vậy phương trình có nghiệm duy nhất $x=5$.\n\nCách giải trên có đúng không? Nếu sai, hãy chỉ ra lỗi và giải lại cho đúng.",
+    "answer": "Cách giải trên **SAI**.\n\n**Lỗi sai:** Ở **Bước 2**, bạn học sinh đã chia cả hai vế cho biểu thức $(x+3)$ mà chưa xét trường hợp $x+3=0$. Việc này làm mất nghiệm $x=-3$ của phương trình.\n\n**Lời giải đúng:**\n$$ \\begin{aligned} x^2 - 9 &= 2(x+3) \\\\ (x-3)(x+3) - 2(x+3) &= 0 \\\\ (x+3)(x-3-2) &= 0 \\\\ (x+3)(x-5) &= 0 \\\\ x+3=0 &\\text{ hoặc } x-5=0 \\\\ x=-3 &\\text{ hoặc } x=5 \\end{aligned} $$\nVậy tập nghiệm của phương trình là $S = \\{-3; 5\\}$.",
+    "explanation": "Không được chia hai vế của phương trình cho một biểu thức chứa ẩn mà không đặt điều kiện biểu thức đó khác 0. Cách làm đúng là chuyển vế và đặt nhân tử chung để đưa về phương trình tích.",
+    "hint": "Hãy chuyển tất cả các hạng tử về một vế và đặt nhân tử chung."
+  },
+  {
+    "flashcard_type": "Sắp xếp các bước",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Thông hiểu",
+    "question": "Sắp xếp các bước sau để giải phương trình $x^2 = 5x$.",
+    "answer": "Thứ tự đúng là: Chuyển vế $\\rightarrow$ Phân tích thành nhân tử $\\rightarrow$ Áp dụng tính chất phương trình tích $\\rightarrow$ Kết luận nghiệm.",
+    "explanation": "Để giải phương trình này, ta phải đưa nó về dạng tích $A(x)B(x)=0$ bằng cách chuyển vế và đặt nhân tử chung, sau đó mới áp dụng quy tắc giải phương trình tích.",
+    "hint": "Đầu tiên phải đưa phương trình về dạng có một vế bằng 0.",
+    "ordering_steps_items": [
+      {
+        "step_content": "Chuyển vế: $x^2 - 5x = 0$.",
+        "correct_order": 1
+      },
+      {
+        "step_content": "Phân tích vế trái thành nhân tử: $x(x - 5) = 0$.",
+        "correct_order": 2
+      },
+      {
+        "step_content": "Áp dụng tính chất: $x = 0$ hoặc $x - 5 = 0$.",
+        "correct_order": 3
+      },
+      {
+        "step_content": "Kết luận tập nghiệm: $S = \\{0; 5\\}$.",
+        "correct_order": 4
+      }
+    ]
+  },
+  {
+    "flashcard_type": "Bước tiếp theo là gì?",
+    "topic_id": 1,
+    "learning_object": "LO-C1-01",
+    "level": "Vận dụng",
+    "question": "Cho phương trình $(2x-3)^2 = (x+7)^2$. \n\nBước đầu tiên là chuyển vế để đưa phương trình về dạng $A^2 - B^2 = 0$: \n$$(2x-3)^2 - (x+7)^2 = 0$$\n\nBước hợp lý tiếp theo là gì?",
+    "answer": "Bước tiếp theo là áp dụng hằng đẳng thức hiệu hai bình phương $A^2 - B^2 = (A-B)(A+B)$ để phân tích vế trái thành nhân tử.",
+    "explanation": "Sau khi đưa phương trình về dạng $A^2 - B^2 = 0$, việc sử dụng hằng đẳng thức sẽ giúp chuyển phương trình thành dạng tích $[(2x-3)-(x+7)][(2x-3)+(x+7)] = 0$, từ đó có thể giải dễ dàng.",
+    "hint": "Phương trình đang có dạng hiệu của hai bình phương."
+  }
+]

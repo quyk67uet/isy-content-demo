@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* KaTeX styles for proper LaTeX rendering */
+.katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.katex {
+  font-size: 1.1em;
+}
+
+/* Ensure align blocks are properly displayed */
+.katex-display > .katex {
+  display: inline-block;
+  text-align: left;
+}
+
+/* Fix for align environment */
+.katex .katex-html {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
