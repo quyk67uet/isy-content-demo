@@ -223,16 +223,19 @@ export const parseLatex = (
       remarkPlugins={[remarkBreaks, remarkMath]}
       rehypePlugins={[rehypeRaw, [rehypeKatex, { throwOnError: false }]]}
       components={{
-        img: ({ ...props }) => (
-          <Image
-            {...props}
-            src={props.src || ""}
-            alt={props.alt || ""}
-            width={600}
-            height={256}
-            className="max-h-32 w-auto rounded shadow border object-contain mx-auto my-4"
-          />
-        ),
+        img: ({ ...props }) => {
+          const src = typeof props.src === 'string' ? props.src : '';
+          const alt = typeof props.alt === 'string' ? props.alt : '';
+          return (
+            <Image
+              src={src || ""}
+              alt={alt || ""}
+              width={600}
+              height={256}
+              className="max-h-32 w-auto rounded shadow border object-contain mx-auto my-4"
+            />
+          );
+        },
         table: ({ ...props }) => (
           <table
             {...props}
