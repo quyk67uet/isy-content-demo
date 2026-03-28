@@ -213,8 +213,14 @@ export const parseLatex = (
     text
   );
 
+  // If there are LaTeX commands but no delimiters, wrap as inline math.
+  const hasLatexCommands = /\\[a-zA-Z]+/.test(text);
+  if (!hasLatex && hasLatexCommands) {
+    text = `$${text}$`;
+  }
+
   // If no LaTeX or images or markdown, return plain text
-  if (!hasLatex && !hasMarkdownImages && !hasMarkdown) {
+  if (!hasLatex && !hasLatexCommands && !hasMarkdownImages && !hasMarkdown) {
     return <span>{text}</span>;
   }
 
