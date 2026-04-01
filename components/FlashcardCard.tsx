@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { parseLatex } from "@/lib/utils";
+import GeometryRenderer, { type DiagramData } from "@/app/components/GeometryRenderer";
 
 interface Choice {
   choice_id: string;
@@ -24,6 +25,7 @@ interface Flashcard {
   hint?: string;
   choices?: Choice[];
   ordering_steps_items?: OrderingStep[];
+  diagram_data?: DiagramData;
 }
 
 interface FlashcardCardProps {
@@ -105,6 +107,9 @@ export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) 
             <div className="flex-1 text-gray-800 leading-relaxed text-lg mb-4">
               {parseLatex(flashcard.question)}
             </div>
+            {flashcard.diagram_data && (
+              <GeometryRenderer data={flashcard.diagram_data} />
+            )}
 
             {/* Choices for Multiple Choice Flashcards */}
             {isMultipleChoice && flashcard.choices && (
@@ -188,6 +193,9 @@ export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) 
             <div className="flex-1 p-4 bg-green-50 border-2 border-green-200 rounded-lg text-gray-800 leading-relaxed mb-4">
               {parseLatex(flashcard.answer)}
             </div>
+            {flashcard.diagram_data && (
+              <GeometryRenderer data={flashcard.diagram_data} />
+            )}
 
             {/* Ordering Steps Items */}
             {isOrderingSteps && flashcard.ordering_steps_items && (

@@ -1,0 +1,78 @@
+{
+  "canvas": {
+    "viewBox": [-1, -1, 6, 5],
+    "unit": 50
+  },
+  "primitives": [
+    {
+      "type": "grid",
+      "step": 1
+    },
+    {
+      "type": "axis",
+      "x_range": [-1, 5],
+      "y_range": [-1, 4],
+      "show_numbers": true
+    },
+    {
+      "type": "point",
+      "id": "A",
+      "coords": [0, 0],
+      "label": "A",
+      "pos": "bottom_left"
+    },
+    {
+      "type": "point",
+      "id": "B",
+      "coords": [4, 0],
+      "label": "B",
+      "pos": "bottom_right"
+    },
+    {
+      "type": "point",
+      "id": "C",
+      "coords": [0, 3],
+      "label": "C",
+      "pos": "top_left"
+    },
+    {
+      "type": "segment",
+      "points": ["A", "B"],
+      "color": "#2563eb"
+    },
+    {
+      "type": "segment",
+      "points": ["A", "C"],
+      "color": "#2563eb"
+    },
+    {
+      "type": "segment",
+      "points": ["B", "C"],
+      "color": "#2563eb"
+    },
+    {
+      "type": "angle",
+      "vertex": "A",
+      "p1": "B",
+      "p2": "C",
+      "mark": "right",
+      "label": "90°",
+      "color": "#dc2626"
+    },
+    {
+      "type": "label",
+      "coords": [2, -0.45],
+      "content": "AB = 4"
+    },
+    {
+      "type": "label",
+      "coords": [-0.55, 1.5],
+      "content": "AC = 3"
+    },
+    {
+      "type": "label",
+      "coords": [2.2, 1.8],
+      "content": "BC = 5"
+    }
+  ]
+}

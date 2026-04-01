@@ -2,6 +2,7 @@
 
 import React from "react";
 import { parseLatex } from "@/lib/utils";
+import GeometryRenderer, { type DiagramData } from "@/app/components/GeometryRenderer";
 
 interface Choice {
   choice_id: string;
@@ -16,6 +17,7 @@ interface Question {
   choices?: Choice[] | null;
   answer: string;
   suggested_solution?: string;
+  diagram_data?: DiagramData;
 }
 
 interface QuestionCardProps {
@@ -54,6 +56,7 @@ export default function QuestionCard({ question, index }: QuestionCardProps) {
         <div className="text-gray-800 leading-relaxed">
           {parseLatex(question.question_text)}
         </div>
+        {question.diagram_data && <GeometryRenderer data={question.diagram_data} />}
       </div>
 
       {/* Choices (for multiple choice) */}
