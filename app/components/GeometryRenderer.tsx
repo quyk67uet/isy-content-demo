@@ -41,6 +41,53 @@ interface Editable3DLabelGroup {
   fields: ReturnType<typeof get3DLabelFieldSpecs>;
 }
 
+function resolveCanvasConfig(data: DiagramData): {
+  viewBox: [number, number, number, number];
+  unit: number;
+} {
+  const canvas = (data as unknown as {
+    canvas?: {
+      viewBox?: unknown;
+      unit?: unknown;
+      width?: unknown;
+      height?: unknown;
+    };
+  }).canvas;
+
+  const unit =
+    typeof canvas?.unit === "number" && Number.isFinite(canvas.unit) && canvas.unit > 0
+      ? canvas.unit
+      : 40;
+
+  if (
+    Array.isArray(canvas?.viewBox) &&
+    canvas.viewBox.length === 4 &&
+    canvas.viewBox.every((value) => typeof value === "number" && Number.isFinite(value))
+  ) {
+    return {
+      viewBox: canvas.viewBox as [number, number, number, number],
+      unit,
+    };
+  }
+
+  const widthPx =
+    typeof canvas?.width === "number" && Number.isFinite(canvas.width) && canvas.width > 0
+      ? canvas.width
+      : 300;
+  const heightPx =
+    typeof canvas?.height === "number" && Number.isFinite(canvas.height) && canvas.height > 0
+      ? canvas.height
+      : 300;
+
+  const widthRaw = Math.max(widthPx / unit, 1);
+  const heightRaw = Math.max(heightPx / unit, 1);
+
+  return {
+    viewBox: [-widthRaw / 2, -heightRaw / 2, widthRaw, heightRaw],
+    unit,
+  };
+}
+
 function formatPrimitiveName(type: string): string {
   return type
     .replace(/_3d$/, "")
@@ -53,8 +100,8 @@ export default function GeometryRenderer({
   editableLabels = false,
   onDiagramDataChange,
 }: GeometryRendererProps) {
-  const [minX, minY, width, height] = data.canvas.viewBox;
-  const unit = data.canvas.unit;
+  const { viewBox, unit } = useMemo(() => resolveCanvasConfig(data), [data]);
+  const [minX, minY, width, height] = viewBox;
   const maxX = minX + width;
   const maxY = minY + height;
 

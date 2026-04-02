@@ -28,7 +28,7 @@ interface Flashcard {
   diagram_data?: DiagramData;
 }
 
-type FlashcardDataSource = "array" | "flashcards" | "data" | null;
+type FlashcardDataSource = "array" | "flashcards" | "data" | "single" | null;
 
 export default function FlashcardViewer() {
   const [jsonInput, setJsonInput] = useState("");
@@ -48,19 +48,39 @@ export default function FlashcardViewer() {
   const parseJson = (text: string) => {
     try {
       setError("");
-      const parsed = JSON.parse(text);
+      let parsed: unknown = JSON.parse(text);
+      if (typeof parsed === "string") {
+        parsed = JSON.parse(parsed.trim().replace(/,$/, ""));
+      }
       
       // Check if it's an array or object with flashcards property
       let flashcardsArray: Flashcard[] = [];
       if (Array.isArray(parsed)) {
         flashcardsArray = parsed;
         setDataSource("array");
-      } else if (parsed.flashcards && Array.isArray(parsed.flashcards)) {
-        flashcardsArray = parsed.flashcards;
+      } else if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        "flashcards" in parsed &&
+        Array.isArray((parsed as { flashcards?: unknown }).flashcards)
+      ) {
+        flashcardsArray = (parsed as { flashcards: Flashcard[] }).flashcards;
         setDataSource("flashcards");
-      } else if (parsed.data && Array.isArray(parsed.data)) {
-        flashcardsArray = parsed.data;
+      } else if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        "data" in parsed &&
+        Array.isArray((parsed as { data?: unknown }).data)
+      ) {
+        flashcardsArray = (parsed as { data: Flashcard[] }).data;
         setDataSource("data");
+      } else if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        "flashcard_type" in parsed
+      ) {
+        flashcardsArray = [parsed as Flashcard];
+        setDataSource("single");
       } else {
         setDataSource(null);
         setParsedRoot(null);
@@ -101,6 +121,13 @@ export default function FlashcardViewer() {
       }
 
       const rootCopy = JSON.parse(JSON.stringify(previousRoot));
+
+      if (dataSource === "single" && typeof rootCopy === "object" && rootCopy !== null) {
+        (rootCopy as Flashcard).diagram_data = nextDiagramData;
+        updateJsonTextFromRoot(rootCopy);
+        return rootCopy;
+      }
+
       let targetArray: Flashcard[] | null = null;
 
       if (dataSource === "array" && Array.isArray(rootCopy)) {
