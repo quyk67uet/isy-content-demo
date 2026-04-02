@@ -310,48 +310,6 @@ export function normalizeDiagramLabel(input?: string | null): string | undefined
   if (!text) {
     return undefined;
   }
-
-  text = text.replace(/\$/g, "");
-  text = text.replace(/\\text\s*\{([^}]*)\}/g, "$1");
-  text = text.replace(/\\mathrm\s*\{([^}]*)\}/g, "$1");
-  text = text.replace(/\\left|\\right/g, "");
-  text = text.replace(/\\cdot/g, " ");
-  text = text.replace(/\\times/g, "x");
-  text = text.replace(/\\pi/g, "pi");
-  text = text.replace(/\\,/g, " ");
-  text = text.replace(/\\;/g, " ");
-  text = text.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)");
-
-  // Flatten simple exponent blocks before superscript conversion.
-  text = text.replace(/\^\{([^}]*)\}/g, "^$1");
-
-  const superMap: Record<string, string> = {
-    "0": "\u2070",
-    "1": "\u00B9",
-    "2": "\u00B2",
-    "3": "\u00B3",
-    "4": "\u2074",
-    "5": "\u2075",
-    "6": "\u2076",
-    "7": "\u2077",
-    "8": "\u2078",
-    "9": "\u2079",
-    "+": "\u207A",
-    "-": "\u207B",
-    "=": "\u207C",
-    "(": "\u207D",
-    ")": "\u207E",
-  };
-
-  const toSuperscript = (value: string): string =>
-    value
-      .split("")
-      .map((char) => superMap[char] ?? char)
-      .join("");
-
-  text = text.replace(/\^\s*([0-9()+\-=]+)/g, (_, exp: string) => toSuperscript(exp));
-
-  text = text.replace(/\\/g, "");
   text = text.replace(/\s+/g, " ").trim();
 
   return text || undefined;

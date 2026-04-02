@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { parseLatex } from "@/lib/utils";
 
 import { apply2DPrimitiveBounds } from "./geometry-renderer/bounds2d";
 import { apply3DPrimitiveBounds } from "./geometry-renderer/bounds3d";
@@ -193,7 +194,7 @@ export default function GeometryRenderer({
   );
 
   const beginLabelDrag = useCallback(
-    (event: React.PointerEvent<SVGTextElement>, labelKey: string) => {
+    (event: React.PointerEvent<Element>, labelKey: string) => {
       if (!editableLabels) {
         return;
       }
@@ -210,12 +211,26 @@ export default function GeometryRenderer({
         startOffset,
       };
 
-      event.currentTarget.setPointerCapture(event.pointerId);
+      if ("setPointerCapture" in event.currentTarget) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
       event.preventDefault();
       event.stopPropagation();
     },
     [editableLabels, getSvgPointerCoords]
   );
+
+  const estimateLabelBox = useCallback((text: string, fontSize: number) => {
+    const normalized = text
+      .replace(/\$+/g, "")
+      .replace(/\\[a-zA-Z]+/g, "x")
+      .replace(/[{}_^]/g, "")
+      .trim();
+    const length = Math.max(normalized.length, 1);
+    const width = Math.max(26, Math.min(220, length * fontSize * 0.72 + 12));
+    const height = Math.max(24, fontSize * 1.9);
+    return { width, height };
+  }, []);
 
   const handleSvgPointerMove = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
@@ -258,27 +273,42 @@ export default function GeometryRenderer({
   const renderLabelText = useCallback(
     (options: RenderLabelOptions) => {
       const [finalX, finalY] = applyLabelOffset(options.labelKey, options.x, options.y);
+      const fontSize = options.fontSize ?? 12;
+      const textAnchor = options.textAnchor ?? "middle";
+      const { width: boxWidth, height: boxHeight } = estimateLabelBox(options.text, fontSize);
+      const boxX =
+        textAnchor === "start"
+          ? finalX
+          : textAnchor === "end"
+            ? finalX - boxWidth
+            : finalX - boxWidth / 2;
+      const boxY = finalY - boxHeight / 2;
 
       return (
-        <text
+        <foreignObject
           key={options.labelKey}
-          x={finalX}
-          y={finalY}
-          fontSize={options.fontSize ?? 12}
-          fill={options.fill}
-          textAnchor={options.textAnchor ?? "middle"}
-          dominantBaseline="middle"
-          stroke="#f9fafb"
-          strokeWidth={3}
-          paintOrder="stroke"
-          style={editableLabels ? { cursor: "grab", userSelect: "none" } : undefined}
+          x={boxX}
+          y={boxY}
+          width={boxWidth}
+          height={boxHeight}
           onPointerDown={(event) => beginLabelDrag(event, options.labelKey)}
         >
-          {options.text}
-        </text>
+          <div
+            className="w-full h-full flex items-center justify-center leading-none [&&_.katex-display]:m-0 [&_p]:m-0"
+            style={{
+              color: options.fill,
+              fontSize: `${fontSize}px`,
+              cursor: editableLabels ? "grab" : "default",
+              userSelect: "none",
+              textShadow: "0 0 2px #f9fafb, 0 0 2px #f9fafb",
+            }}
+          >
+            {parseLatex(options.text)}
+          </div>
+        </foreignObject>
       );
     },
-    [applyLabelOffset, beginLabelDrag, editableLabels]
+    [applyLabelOffset, beginLabelDrag, editableLabels, estimateLabelBox]
   );
 
   const editable3DLabelGroups = useMemo<Editable3DLabelGroup[]>(() => {
