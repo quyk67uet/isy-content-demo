@@ -31,6 +31,8 @@ interface Flashcard {
 interface FlashcardCardProps {
   flashcard: Flashcard;
   index: number;
+  editableLabels?: boolean;
+  onDiagramDataChange?: (nextDiagramData: DiagramData) => void;
 }
 
 // Fisher-Yates shuffle algorithm
@@ -43,7 +45,12 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) {
+export default function FlashcardCard({
+  flashcard,
+  index,
+  editableLabels = false,
+  onDiagramDataChange,
+}: FlashcardCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const isMultipleChoice = flashcard.flashcard_type === "Trắc nghiệm";
   const isOrderingSteps = flashcard.flashcard_type === "Sắp xếp các bước";
@@ -108,7 +115,11 @@ export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) 
               {parseLatex(flashcard.question)}
             </div>
             {flashcard.diagram_data && (
-              <GeometryRenderer data={flashcard.diagram_data} />
+              <GeometryRenderer
+                data={flashcard.diagram_data}
+                editableLabels={editableLabels}
+                onDiagramDataChange={onDiagramDataChange}
+              />
             )}
 
             {/* Choices for Multiple Choice Flashcards */}
@@ -194,7 +205,11 @@ export default function FlashcardCard({ flashcard, index }: FlashcardCardProps) 
               {parseLatex(flashcard.answer)}
             </div>
             {flashcard.diagram_data && (
-              <GeometryRenderer data={flashcard.diagram_data} />
+              <GeometryRenderer
+                data={flashcard.diagram_data}
+                editableLabels={editableLabels}
+                onDiagramDataChange={onDiagramDataChange}
+              />
             )}
 
             {/* Ordering Steps Items */}

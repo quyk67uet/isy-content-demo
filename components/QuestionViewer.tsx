@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import QuestionCard from "./QuestionCard";
+import { type DiagramData } from "@/app/components/GeometryRenderer";
 
 interface Choice {
   choice_id: string;
@@ -16,12 +17,18 @@ interface Question {
   choices?: Choice[] | null;
   answer: string;
   suggested_solution?: string;
+  diagram_data?: DiagramData;
 }
+
+type QuestionDataSource = "array" | "questions" | "data" | null;
 
 export default function QuestionViewer() {
   const [jsonInput, setJsonInput] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [error, setError] = useState("");
+  const [, setParsedRoot] = useState<unknown>(null);
+  const [dataSource, setDataSource] = useState<QuestionDataSource>(null);
+  const [editLabelsMode, setEditLabelsMode] = useState(false);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault();
@@ -39,27 +46,94 @@ export default function QuestionViewer() {
       let questionsArray: Question[] = [];
       if (Array.isArray(parsed)) {
         questionsArray = parsed;
+        setDataSource("array");
       } else if (parsed.questions && Array.isArray(parsed.questions)) {
         questionsArray = parsed.questions;
+        setDataSource("questions");
       } else if (parsed.data && Array.isArray(parsed.data)) {
         questionsArray = parsed.data;
+        setDataSource("data");
       } else {
+        setDataSource(null);
+        setParsedRoot(null);
         throw new Error("Không tìm thấy mảng questions trong JSON");
       }
 
       setQuestions(questionsArray);
+      setParsedRoot(parsed);
     } catch (err) {
       setError(
         `Lỗi parse JSON: ${err instanceof Error ? err.message : "Unknown error"}`
       );
       setQuestions([]);
+      setParsedRoot(null);
+      setDataSource(null);
     }
+  };
+
+  const updateJsonTextFromRoot = (root: unknown) => {
+    setJsonInput(JSON.stringify(root, null, 2));
+  };
+
+  const handleQuestionDiagramDataChange = (
+    questionIndex: number,
+    nextDiagramData: DiagramData
+  ) => {
+    setQuestions((prev) =>
+      prev.map((question, index) =>
+        index === questionIndex
+          ? { ...question, diagram_data: nextDiagramData }
+          : question
+      )
+    );
+
+    setParsedRoot((previousRoot) => {
+      if (!previousRoot || !dataSource) {
+        return previousRoot;
+      }
+
+      const rootCopy = JSON.parse(JSON.stringify(previousRoot));
+      let targetArray: Question[] | null = null;
+
+      if (dataSource === "array" && Array.isArray(rootCopy)) {
+        targetArray = rootCopy as Question[];
+      } else if (
+        dataSource === "questions" &&
+        typeof rootCopy === "object" &&
+        rootCopy !== null &&
+        Array.isArray((rootCopy as { questions?: unknown }).questions)
+      ) {
+        targetArray = (rootCopy as { questions: Question[] }).questions;
+      } else if (
+        dataSource === "data" &&
+        typeof rootCopy === "object" &&
+        rootCopy !== null &&
+        Array.isArray((rootCopy as { data?: unknown }).data)
+      ) {
+        targetArray = (rootCopy as { data: Question[] }).data;
+      }
+
+      if (!targetArray || !targetArray[questionIndex]) {
+        return previousRoot;
+      }
+
+      targetArray[questionIndex] = {
+        ...targetArray[questionIndex],
+        diagram_data: nextDiagramData,
+      };
+
+      updateJsonTextFromRoot(rootCopy);
+      return rootCopy;
+    });
   };
 
   const handleClear = () => {
     setJsonInput("");
     setQuestions([]);
     setError("");
+    setParsedRoot(null);
+    setDataSource(null);
+    setEditLabelsMode(false);
   };
 
   return (
@@ -69,14 +143,28 @@ export default function QuestionViewer() {
           <h2 className="text-2xl font-bold text-gray-800">
             Questions Viewer
           </h2>
-          {jsonInput && (
-            <button
-              onClick={handleClear}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Clear
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {questions.some((question) => question.diagram_data) && (
+              <button
+                onClick={() => setEditLabelsMode((prev) => !prev)}
+                className={`px-4 py-2 rounded-lg transition-colors text-white ${
+                  editLabelsMode
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {editLabelsMode ? "Tắt Edit Labels" : "Edit Labels"}
+              </button>
+            )}
+            {jsonInput && (
+              <button
+                onClick={handleClear}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">
@@ -101,6 +189,11 @@ export default function QuestionViewer() {
           {questions.length > 0 && (
             <div className="mt-2 text-sm text-green-600 font-medium">
               ✓ Đã tải {questions.length} câu hỏi
+            </div>
+          )}
+          {editLabelsMode && (
+            <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              Chế độ Edit Labels đang bật: kéo trực tiếp các nhãn trên hình. JSON trong ô này sẽ được update ngay sau khi thả chuột.
             </div>
           )}
         </div>
@@ -169,7 +262,15 @@ export default function QuestionViewer() {
           </div>
 
           {questions.map((question, index) => (
-            <QuestionCard key={index} question={question} index={index} />
+            <QuestionCard
+              key={index}
+              question={question}
+              index={index}
+              editableLabels={editLabelsMode}
+              onDiagramDataChange={(nextDiagramData) =>
+                handleQuestionDiagramDataChange(index, nextDiagramData)
+              }
+            />
           ))}
         </div>
       )}

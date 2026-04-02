@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import FlashcardCard from "./FlashcardCard";
+import { type DiagramData } from "@/app/components/GeometryRenderer";
 
 interface Choice {
   choice_id: string;
@@ -24,12 +25,18 @@ interface Flashcard {
   hint?: string;
   choices?: Choice[];
   ordering_steps_items?: OrderingStep[];
+  diagram_data?: DiagramData;
 }
+
+type FlashcardDataSource = "array" | "flashcards" | "data" | null;
 
 export default function FlashcardViewer() {
   const [jsonInput, setJsonInput] = useState("");
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [error, setError] = useState("");
+  const [, setParsedRoot] = useState<unknown>(null);
+  const [dataSource, setDataSource] = useState<FlashcardDataSource>(null);
+  const [editLabelsMode, setEditLabelsMode] = useState(false);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault();
@@ -47,27 +54,94 @@ export default function FlashcardViewer() {
       let flashcardsArray: Flashcard[] = [];
       if (Array.isArray(parsed)) {
         flashcardsArray = parsed;
+        setDataSource("array");
       } else if (parsed.flashcards && Array.isArray(parsed.flashcards)) {
         flashcardsArray = parsed.flashcards;
+        setDataSource("flashcards");
       } else if (parsed.data && Array.isArray(parsed.data)) {
         flashcardsArray = parsed.data;
+        setDataSource("data");
       } else {
+        setDataSource(null);
+        setParsedRoot(null);
         throw new Error("Không tìm thấy mảng flashcards trong JSON");
       }
 
       setFlashcards(flashcardsArray);
+      setParsedRoot(parsed);
     } catch (err) {
       setError(
         `Lỗi parse JSON: ${err instanceof Error ? err.message : "Unknown error"}`
       );
       setFlashcards([]);
+      setParsedRoot(null);
+      setDataSource(null);
     }
+  };
+
+  const updateJsonTextFromRoot = (root: unknown) => {
+    setJsonInput(JSON.stringify(root, null, 2));
+  };
+
+  const handleFlashcardDiagramDataChange = (
+    flashcardIndex: number,
+    nextDiagramData: DiagramData
+  ) => {
+    setFlashcards((prev) =>
+      prev.map((flashcard, index) =>
+        index === flashcardIndex
+          ? { ...flashcard, diagram_data: nextDiagramData }
+          : flashcard
+      )
+    );
+
+    setParsedRoot((previousRoot) => {
+      if (!previousRoot || !dataSource) {
+        return previousRoot;
+      }
+
+      const rootCopy = JSON.parse(JSON.stringify(previousRoot));
+      let targetArray: Flashcard[] | null = null;
+
+      if (dataSource === "array" && Array.isArray(rootCopy)) {
+        targetArray = rootCopy as Flashcard[];
+      } else if (
+        dataSource === "flashcards" &&
+        typeof rootCopy === "object" &&
+        rootCopy !== null &&
+        Array.isArray((rootCopy as { flashcards?: unknown }).flashcards)
+      ) {
+        targetArray = (rootCopy as { flashcards: Flashcard[] }).flashcards;
+      } else if (
+        dataSource === "data" &&
+        typeof rootCopy === "object" &&
+        rootCopy !== null &&
+        Array.isArray((rootCopy as { data?: unknown }).data)
+      ) {
+        targetArray = (rootCopy as { data: Flashcard[] }).data;
+      }
+
+      if (!targetArray || !targetArray[flashcardIndex]) {
+        return previousRoot;
+      }
+
+      targetArray[flashcardIndex] = {
+        ...targetArray[flashcardIndex],
+        diagram_data: nextDiagramData,
+      };
+
+      updateJsonTextFromRoot(rootCopy);
+      return rootCopy;
+    });
   };
 
   const handleClear = () => {
     setJsonInput("");
     setFlashcards([]);
     setError("");
+    setParsedRoot(null);
+    setDataSource(null);
+    setEditLabelsMode(false);
   };
 
   return (
@@ -77,14 +151,28 @@ export default function FlashcardViewer() {
           <h2 className="text-2xl font-bold text-gray-800">
             Flashcards Viewer
           </h2>
-          {jsonInput && (
-            <button
-              onClick={handleClear}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Clear
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {flashcards.some((flashcard) => flashcard.diagram_data) && (
+              <button
+                onClick={() => setEditLabelsMode((prev) => !prev)}
+                className={`px-4 py-2 rounded-lg transition-colors text-white ${
+                  editLabelsMode
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-purple-600 hover:bg-purple-700"
+                }`}
+              >
+                {editLabelsMode ? "Tắt Edit Labels" : "Edit Labels"}
+              </button>
+            )}
+            {jsonInput && (
+              <button
+                onClick={handleClear}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">
@@ -109,6 +197,11 @@ export default function FlashcardViewer() {
           {flashcards.length > 0 && (
             <div className="mt-2 text-sm text-green-600 font-medium">
               ✓ Đã tải {flashcards.length} flashcards
+            </div>
+          )}
+          {editLabelsMode && (
+            <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              Chế độ Edit Labels đang bật: kéo trực tiếp các nhãn trên hình. JSON trong ô này sẽ được update ngay sau khi thả chuột.
             </div>
           )}
         </div>
@@ -169,7 +262,15 @@ export default function FlashcardViewer() {
           </div>
 
           {flashcards.map((flashcard, index) => (
-            <FlashcardCard key={index} flashcard={flashcard} index={index} />
+            <FlashcardCard
+              key={index}
+              flashcard={flashcard}
+              index={index}
+              editableLabels={editLabelsMode}
+              onDiagramDataChange={(nextDiagramData) =>
+                handleFlashcardDiagramDataChange(index, nextDiagramData)
+              }
+            />
           ))}
         </div>
       )}

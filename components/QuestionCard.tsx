@@ -23,9 +23,16 @@ interface Question {
 interface QuestionCardProps {
   question: Question;
   index: number;
+  editableLabels?: boolean;
+  onDiagramDataChange?: (nextDiagramData: DiagramData) => void;
 }
 
-export default function QuestionCard({ question, index }: QuestionCardProps) {
+export default function QuestionCard({
+  question,
+  index,
+  editableLabels = false,
+  onDiagramDataChange,
+}: QuestionCardProps) {
   const isMultipleChoice = question.question_type === "Trắc nghiệm";
 
   return (
@@ -56,7 +63,13 @@ export default function QuestionCard({ question, index }: QuestionCardProps) {
         <div className="text-gray-800 leading-relaxed">
           {parseLatex(question.question_text)}
         </div>
-        {question.diagram_data && <GeometryRenderer data={question.diagram_data} />}
+        {question.diagram_data && (
+          <GeometryRenderer
+            data={question.diagram_data}
+            editableLabels={editableLabels}
+            onDiagramDataChange={onDiagramDataChange}
+          />
+        )}
       </div>
 
       {/* Choices (for multiple choice) */}
