@@ -425,7 +425,8 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
         );
       }
 
-      if (primitive.label) {
+      const angleLabel = normalizeDiagramLabel(primitive.label);
+      if (angleLabel) {
         const bisector = normalize([v1[0] + v2[0], v1[1] + v2[1]]);
         if (bisector) {
           const labelPos: Vec2 = [
@@ -434,16 +435,14 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           ];
 
           nodes.push(
-            <text
-              key="angle-label"
-              x={transformX(labelPos[0])}
-              y={transformY(labelPos[1])}
-              fontSize={12}
-              fill="#1f2937"
-              textAnchor="middle"
-            >
-              {primitive.label}
-            </text>
+            renderLabelText({
+              labelKey: `primitive-${index}-angle-label`,
+              x: transformX(labelPos[0]),
+              y: transformY(labelPos[1]),
+              text: angleLabel,
+              fill: "#1f2937",
+              textAnchor: "middle",
+            })
           );
         }
       }
@@ -454,15 +453,20 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
     case "point": {
       const [x, y] = primitive.coords;
       const [offsetX, offsetY] = getPointLabelOffset(primitive.pos);
+      const pointLabel = normalizeDiagramLabel(primitive.label ?? primitive.id);
 
       return (
         <g key={key}>
           <circle cx={transformX(x)} cy={transformY(y)} r={4} fill={primitive.color ?? "#111827"} />
-          {(primitive.label ?? primitive.id) && (
-            <text x={transformX(x) + offsetX} y={transformY(y) + offsetY} fontSize={12} fill="#111827">
-              {primitive.label ?? primitive.id}
-            </text>
-          )}
+          {pointLabel &&
+            renderLabelText({
+              labelKey: `primitive-${index}-point-label`,
+              x: transformX(x) + offsetX,
+              y: transformY(y) + offsetY,
+              text: pointLabel,
+              fill: "#111827",
+              textAnchor: "start",
+            })}
         </g>
       );
     }
