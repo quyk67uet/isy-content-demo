@@ -391,12 +391,12 @@ export default function GeometryRenderer({
   );
 
   const contentBounds = useMemo(() => {
-    const bounds = createSvgBounds(
-      transformX(minX),
-      transformY(maxY),
-      transformX(maxX),
-      transformY(minY)
-    );
+    const bounds = {
+      minX: Number.POSITIVE_INFINITY,
+      minY: Number.POSITIVE_INFINITY,
+      maxX: Number.NEGATIVE_INFINITY,
+      maxY: Number.NEGATIVE_INFINITY,
+    };
 
     for (const [primitiveIndex, primitive] of data.primitives.entries()) {
       const strokeWidth = primitive.stroke_width ?? 2;
@@ -436,7 +436,22 @@ export default function GeometryRenderer({
       });
     }
 
-    return bounds;
+    if (
+      Number.isFinite(bounds.minX) &&
+      Number.isFinite(bounds.minY) &&
+      Number.isFinite(bounds.maxX) &&
+      Number.isFinite(bounds.maxY)
+    ) {
+      return bounds;
+    }
+
+    // Fallback when no drawable primitive could contribute bounds.
+    return createSvgBounds(
+      transformX(minX),
+      transformY(maxY),
+      transformX(maxX),
+      transformY(minY)
+    );
   }, [
     applyLabelOffset,
     data.primitives,
