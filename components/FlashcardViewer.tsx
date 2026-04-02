@@ -95,7 +95,7 @@ export default function FlashcardViewer() {
       )
     );
 
-    setParsedRoot((previousRoot) => {
+    setParsedRoot((previousRoot: unknown) => {
       if (!previousRoot || !dataSource) {
         return previousRoot;
       }

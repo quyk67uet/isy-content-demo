@@ -87,7 +87,7 @@ export default function QuestionViewer() {
       )
     );
 
-    setParsedRoot((previousRoot) => {
+    setParsedRoot((previousRoot: unknown) => {
       if (!previousRoot || !dataSource) {
         return previousRoot;
       }
