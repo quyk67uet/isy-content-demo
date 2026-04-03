@@ -231,6 +231,7 @@ export interface LabelOffset {
 }
 
 export type LabelOverrides = Record<string, LabelOffset>;
+export type EdgeStyleOverrides = Record<string, StrokeStyle>;
 
 export interface DiagramData {
   canvas: {
@@ -239,4 +240,5 @@ export interface DiagramData {
   };
   primitives: DiagramPrimitive[];
   label_overrides?: LabelOverrides;
+  edge_style_overrides?: EdgeStyleOverrides;
 }

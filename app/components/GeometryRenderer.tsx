@@ -16,8 +16,10 @@ import type {
   AxisPrimitive,
   DiagramData,
   DiagramPrimitive,
+  EdgeStyleOverrides,
   LabelOffset,
   LabelOverrides,
+  StrokeStyle,
   Vec2,
 } from "./geometry-renderer/types";
 import { createSvgBounds, getStrokeDasharray } from "./geometry-renderer/utils";
@@ -123,6 +125,10 @@ export default function GeometryRenderer({
     data.label_overrides ?? {}
   );
   const labelOverridesRef = useRef<LabelOverrides>(data.label_overrides ?? {});
+  const [edgeStyleOverrides, setEdgeStyleOverrides] = useState<EdgeStyleOverrides>(
+    data.edge_style_overrides ?? {}
+  );
+  const edgeStyleOverridesRef = useRef<EdgeStyleOverrides>(data.edge_style_overrides ?? {});
   const [pointDraftCoords, setPointDraftCoords] = useState<Record<string, Vec2>>({});
   const pointDraftCoordsRef = useRef<Record<string, Vec2>>({});
 
@@ -131,6 +137,12 @@ export default function GeometryRenderer({
     setLabelOverrides(incomingOverrides);
     labelOverridesRef.current = incomingOverrides;
   }, [data.label_overrides]);
+
+  useEffect(() => {
+    const incomingEdgeOverrides = data.edge_style_overrides ?? {};
+    setEdgeStyleOverrides(incomingEdgeOverrides);
+    edgeStyleOverridesRef.current = incomingEdgeOverrides;
+  }, [data.edge_style_overrides]);
 
   useEffect(() => {
     setPointDraftCoords({});
@@ -206,6 +218,49 @@ export default function GeometryRenderer({
       onDiagramDataChange(nextData);
     },
     [data, onDiagramDataChange]
+  );
+
+  const resolveEdgeStyle = useCallback(
+    (edgeKey: string, defaultStyle: StrokeStyle): StrokeStyle => {
+      return edgeStyleOverrides[edgeKey] ?? defaultStyle;
+    },
+    [edgeStyleOverrides]
+  );
+
+  const toggleEdgeStyle = useCallback(
+    (edgeKey: string, defaultStyle: StrokeStyle) => {
+      if (!editableLabels || !onDiagramDataChange) {
+        return;
+      }
+
+      const previous = edgeStyleOverridesRef.current;
+      const currentStyle = previous[edgeKey] ?? defaultStyle;
+      const nextStyle: StrokeStyle = currentStyle === "solid" ? "dashed" : "solid";
+
+      const next = {
+        ...previous,
+      };
+
+      if (nextStyle === defaultStyle) {
+        delete next[edgeKey];
+      } else {
+        next[edgeKey] = nextStyle;
+      }
+
+      edgeStyleOverridesRef.current = next;
+      setEdgeStyleOverrides(next);
+
+      const nextData: DiagramData = {
+        ...data,
+      };
+      if (Object.keys(next).length > 0) {
+        nextData.edge_style_overrides = next;
+      } else {
+        delete nextData.edge_style_overrides;
+      }
+      onDiagramDataChange(nextData);
+    },
+    [data, editableLabels, onDiagramDataChange]
   );
 
   const beginLabelDrag = useCallback(
@@ -674,11 +729,13 @@ export default function GeometryRenderer({
             key,
             strokeColor,
             strokeWidth,
-            strokeDasharray,
             unit,
             transformX,
             transformY,
             renderLabelText,
+            editableEdgeStyles: editableLabels,
+            resolveEdgeStyle,
+            onToggleEdgeStyle: toggleEdgeStyle,
           });
 
           if (rendered3D !== undefined) {

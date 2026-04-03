@@ -24,11 +24,13 @@ interface Render3DPrimitiveParams {
   key: string;
   strokeColor: string;
   strokeWidth: number;
-  strokeDasharray: string;
   unit: number;
   transformX: (x: number) => number;
   transformY: (y: number) => number;
   renderLabelText: RenderLabelText;
+  editableEdgeStyles: boolean;
+  resolveEdgeStyle: (edgeKey: string, defaultStyle: StrokeStyle) => StrokeStyle;
+  onToggleEdgeStyle?: (edgeKey: string, defaultStyle: StrokeStyle) => void;
 }
 
 function getLabel(primitive: DiagramPrimitive, field: string): string | undefined {
@@ -51,12 +53,26 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
     key,
     strokeColor,
     strokeWidth,
-    strokeDasharray,
     unit,
     transformX,
     transformY,
     renderLabelText,
+    editableEdgeStyles,
+    resolveEdgeStyle,
+    onToggleEdgeStyle,
   } = params;
+
+  const getEdgeProps = (edgeKey: string, defaultStyle: StrokeStyle) => ({
+    strokeDasharray: getStrokeDasharray(resolveEdgeStyle(edgeKey, defaultStyle)),
+    onClick:
+      editableEdgeStyles && onToggleEdgeStyle
+        ? (event: React.MouseEvent<SVGElement>) => {
+            event.stopPropagation();
+            onToggleEdgeStyle(edgeKey, defaultStyle);
+          }
+        : undefined,
+    style: editableEdgeStyles && onToggleEdgeStyle ? { cursor: "pointer" } : undefined,
+  });
 
   switch (primitive.type) {
     case "sphere_3d": {
@@ -77,6 +93,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
         12,
         "down"
       );
+      const sphereEdgePrefix = `primitive-${index}-sphere`;
       const labelRadius = getLabel(primitive, "label_radius");
 
       return (
@@ -90,14 +107,14 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${sphereEdgePrefix}-outline`, "solid")}
             />
             <path
               d={bottomPath}
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("solid")}
+              {...getEdgeProps(`${sphereEdgePrefix}-equator-front`, "solid")}
             />
           </g>
           <g data-layer="dashed-lines-and-labels">
@@ -106,7 +123,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("dashed")}
+              {...getEdgeProps(`${sphereEdgePrefix}-equator-back`, "dashed")}
             />
             {labelRadius && (
               <>
@@ -164,6 +181,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
         18,
         "right"
       );
+      const cylinderEdgePrefix = `primitive-${index}-cylinder`;
       const labelRadius = getLabel(primitive, "label_radius");
       const labelHeight = getLabel(primitive, "label_height");
 
@@ -178,7 +196,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               y2={transformY(tY)}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${cylinderEdgePrefix}-left-side`, "solid")}
             />
             <line
               x1={transformX(bX + primitive.radius)}
@@ -187,7 +205,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               y2={transformY(tY)}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${cylinderEdgePrefix}-right-side`, "solid")}
             />
             <ellipse
               cx={topCx}
@@ -197,14 +215,14 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${cylinderEdgePrefix}-top-rim`, "solid")}
             />
             <path
               d={bottomPath}
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("solid")}
+              {...getEdgeProps(`${cylinderEdgePrefix}-bottom-rim-front`, "solid")}
             />
           </g>
           <g data-layer="dashed-lines-and-labels">
@@ -213,7 +231,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("dashed")}
+              {...getEdgeProps(`${cylinderEdgePrefix}-bottom-rim-back`, "dashed")}
             />
             {labelRadius && (
               <>
@@ -287,6 +305,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
         14,
         "right"
       );
+      const coneEdgePrefix = `primitive-${index}-cone`;
       const labelRadius = getLabel(primitive, "label_radius");
       const labelHeight = getLabel(primitive, "label_height");
       const labelSlant = getLabel(primitive, "label_slant");
@@ -302,7 +321,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               y2={transformY(left[1])}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${coneEdgePrefix}-left-side`, "solid")}
             />
             <line
               x1={transformX(apex[0])}
@@ -311,14 +330,14 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               y2={transformY(right[1])}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
+              {...getEdgeProps(`${coneEdgePrefix}-right-side`, "solid")}
             />
             <path
               d={bottomPath}
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("solid")}
+              {...getEdgeProps(`${coneEdgePrefix}-base-front`, "solid")}
             />
           </g>
           <g data-layer="dashed-lines-and-labels">
@@ -327,7 +346,7 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("dashed")}
+              {...getEdgeProps(`${coneEdgePrefix}-base-back`, "dashed")}
             />
             {labelRadius && (
               <>
@@ -432,19 +451,19 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
       const labelHeight = getLabel(primitive, "label_height");
       const labelDepth = getLabel(primitive, "label_depth");
 
-      const edges: Array<{ from: Vec2; to: Vec2; style: StrokeStyle }> = [
-        { from: a, to: b, style: "solid" },
-        { from: b, to: c, style: "solid" },
-        { from: c, to: d, style: "solid" },
-        { from: d, to: a, style: "solid" },
-        { from: e, to: f, style: "dashed" },
-        { from: f, to: g, style: "solid" },
-        { from: g, to: h, style: "solid" },
-        { from: h, to: e, style: "dashed" },
-        { from: a, to: e, style: "dashed" },
-        { from: b, to: f, style: "solid" },
-        { from: c, to: g, style: "solid" },
-        { from: d, to: h, style: "solid" },
+      const edges: Array<{ id: string; from: Vec2; to: Vec2; style: StrokeStyle }> = [
+        { id: "ab", from: a, to: b, style: "solid" },
+        { id: "bc", from: b, to: c, style: "solid" },
+        { id: "cd", from: c, to: d, style: "solid" },
+        { id: "da", from: d, to: a, style: "solid" },
+        { id: "ef", from: e, to: f, style: "dashed" },
+        { id: "fg", from: f, to: g, style: "solid" },
+        { id: "gh", from: g, to: h, style: "solid" },
+        { id: "he", from: h, to: e, style: "dashed" },
+        { id: "ae", from: a, to: e, style: "dashed" },
+        { id: "bf", from: b, to: f, style: "solid" },
+        { id: "cg", from: c, to: g, style: "solid" },
+        { id: "dh", from: d, to: h, style: "solid" },
       ];
 
       const solidEdges = edges.filter((edge) => edge.style === "solid");
@@ -473,30 +492,30 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
             />
           </g>
           <g data-layer="solid-lines">
-            {solidEdges.map((edge, edgeIndex) => (
+            {solidEdges.map((edge) => (
               <line
-                key={`${key}-solid-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("solid")}
+                {...getEdgeProps(`primitive-${index}-rect-prism-${edge.id}`, edge.style)}
               />
             ))}
           </g>
           <g data-layer="dashed-lines-and-labels">
-            {dashedEdges.map((edge, edgeIndex) => (
+            {dashedEdges.map((edge) => (
               <line
-                key={`${key}-dashed-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("dashed")}
+                {...getEdgeProps(`primitive-${index}-rect-prism-${edge.id}`, edge.style)}
               />
             ))}
             {labelWidth &&
@@ -548,15 +567,17 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
         .map(([xRaw, yRaw]) => `${transformX(xRaw)},${transformY(yRaw)}`)
         .join(" ");
 
-      const edges: Array<{ from: Vec2; to: Vec2; style: StrokeStyle }> = [];
+      const edges: Array<{ id: string; from: Vec2; to: Vec2; style: StrokeStyle }> = [];
 
       for (let i = 0; i < baseVertices.length; i++) {
         const next = (i + 1) % baseVertices.length;
         const edgeStyle: StrokeStyle =
           i === lastIndex || next === lastIndex ? "dashed" : "solid";
 
-        edges.push({ from: baseVertices[i], to: baseVertices[next], style: edgeStyle });
+        edges.push({ id: `base-${i}-${next}`, from: baseVertices[i], to: baseVertices[next], style: edgeStyle });
+        edges.push({ id: `top-${i}-${next}`, from: topVertices[i], to: topVertices[next], style: edgeStyle });
         edges.push({
+          id: `vertical-${i}`,
           from: baseVertices[i],
           to: topVertices[i],
           style: i === lastIndex ? "dashed" : "solid",
@@ -605,37 +626,30 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
             <polygon points={topPoints} fill="rgba(59, 130, 246, 0.06)" stroke="none" />
           </g>
           <g data-layer="solid-lines">
-            <polygon
-              points={topPoints}
-              fill="none"
-              stroke={strokeColor}
-              strokeWidth={strokeWidth}
-              strokeDasharray={getStrokeDasharray("solid")}
-            />
-            {solidEdges.map((edge, edgeIndex) => (
+            {solidEdges.map((edge) => (
               <line
-                key={`${key}-solid-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("solid")}
+                {...getEdgeProps(`primitive-${index}-prism-${edge.id}`, edge.style)}
               />
             ))}
           </g>
           <g data-layer="dashed-lines-and-labels">
-            {dashedEdges.map((edge, edgeIndex) => (
+            {dashedEdges.map((edge) => (
               <line
-                key={`${key}-dashed-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("dashed")}
+                {...getEdgeProps(`primitive-${index}-prism-${edge.id}`, edge.style)}
               />
             ))}
             {labelHeight &&
@@ -716,15 +730,15 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
       const labelSide = getLabel(primitive, "label_side");
       const labelSlant = getLabel(primitive, "label_slant");
 
-      const edges: Array<{ from: Vec2; to: Vec2; style: StrokeStyle }> = [
-        { from: apex, to: frontLeft, style: "solid" },
-        { from: apex, to: frontRight, style: "solid" },
-        { from: apex, to: backRight, style: "solid" },
-        { from: frontLeft, to: frontRight, style: "solid" },
-        { from: frontRight, to: backRight, style: "solid" },
-        { from: apex, to: backLeft, style: "dashed" },
-        { from: backLeft, to: frontLeft, style: "dashed" },
-        { from: backLeft, to: backRight, style: "dashed" },
+      const edges: Array<{ id: string; from: Vec2; to: Vec2; style: StrokeStyle }> = [
+        { id: "apex-frontLeft", from: apex, to: frontLeft, style: "solid" },
+        { id: "apex-frontRight", from: apex, to: frontRight, style: "solid" },
+        { id: "apex-backRight", from: apex, to: backRight, style: "solid" },
+        { id: "frontLeft-frontRight", from: frontLeft, to: frontRight, style: "solid" },
+        { id: "frontRight-backRight", from: frontRight, to: backRight, style: "solid" },
+        { id: "apex-backLeft", from: apex, to: backLeft, style: "dashed" },
+        { id: "backLeft-frontLeft", from: backLeft, to: frontLeft, style: "dashed" },
+        { id: "backLeft-backRight", from: backLeft, to: backRight, style: "dashed" },
       ];
 
       const solidEdges = edges.filter((edge) => edge.style === "solid");
@@ -744,30 +758,30 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
             />
           </g>
           <g data-layer="solid-lines">
-            {solidEdges.map((edge, edgeIndex) => (
+            {solidEdges.map((edge) => (
               <line
-                key={`${key}-solid-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("solid")}
+                {...getEdgeProps(`primitive-${index}-quad-pyramid-${edge.id}`, edge.style)}
               />
             ))}
           </g>
           <g data-layer="dashed-lines-and-labels">
-            {dashedEdges.map((edge, edgeIndex) => (
+            {dashedEdges.map((edge) => (
               <line
-                key={`${key}-dashed-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("dashed")}
+                {...getEdgeProps(`primitive-${index}-quad-pyramid-${edge.id}`, edge.style)}
               />
             ))}
             {labelHeight && (
@@ -861,13 +875,13 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
       const labelSide = getLabel(primitive, "label_side");
       const labelSlant = getLabel(primitive, "label_slant");
 
-      const edges: Array<{ from: Vec2; to: Vec2; style: StrokeStyle }> = [
-        { from: apex, to: front, style: "solid" },
-        { from: apex, to: backRight, style: "solid" },
-        { from: front, to: backRight, style: "solid" },
-        { from: apex, to: backLeft, style: "dashed" },
-        { from: backLeft, to: front, style: "dashed" },
-        { from: backLeft, to: backRight, style: "dashed" },
+      const edges: Array<{ id: string; from: Vec2; to: Vec2; style: StrokeStyle }> = [
+        { id: "apex-front", from: apex, to: front, style: "solid" },
+        { id: "apex-backRight", from: apex, to: backRight, style: "solid" },
+        { id: "front-backRight", from: front, to: backRight, style: "solid" },
+        { id: "apex-backLeft", from: apex, to: backLeft, style: "dashed" },
+        { id: "backLeft-front", from: backLeft, to: front, style: "dashed" },
+        { id: "backLeft-backRight", from: backLeft, to: backRight, style: "dashed" },
       ];
 
       const solidEdges = edges.filter((edge) => edge.style === "solid");
@@ -885,30 +899,30 @@ export function render3DPrimitive(params: Render3DPrimitiveParams): React.ReactN
             />
           </g>
           <g data-layer="solid-lines">
-            {solidEdges.map((edge, edgeIndex) => (
+            {solidEdges.map((edge) => (
               <line
-                key={`${key}-solid-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("solid")}
+                {...getEdgeProps(`primitive-${index}-tri-pyramid-${edge.id}`, edge.style)}
               />
             ))}
           </g>
           <g data-layer="dashed-lines-and-labels">
-            {dashedEdges.map((edge, edgeIndex) => (
+            {dashedEdges.map((edge) => (
               <line
-                key={`${key}-dashed-${edgeIndex}`}
+                key={`${key}-${edge.id}`}
                 x1={transformX(edge.from[0])}
                 y1={transformY(edge.from[1])}
                 x2={transformX(edge.to[0])}
                 y2={transformY(edge.to[1])}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                strokeDasharray={getStrokeDasharray("dashed")}
+                {...getEdgeProps(`primitive-${index}-tri-pyramid-${edge.id}`, edge.style)}
               />
             ))}
             {labelHeight && (
