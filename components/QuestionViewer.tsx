@@ -193,7 +193,7 @@ export default function QuestionViewer() {
           )}
           {editLabelsMode && (
             <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              Chế độ Edit Labels đang bật: kéo trực tiếp các nhãn trên hình. JSON trong ô này sẽ được update ngay sau khi thả chuột.
+              Chế độ Edit Labels đang bật: kéo trực tiếp nhãn và điểm trên hình. JSON trong ô này sẽ được update ngay sau khi thả chuột.
             </div>
           )}
         </div>

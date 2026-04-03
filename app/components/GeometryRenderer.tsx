@@ -36,6 +36,13 @@ interface LabelDragState {
   startOffset: LabelOffset;
 }
 
+interface PointDragState {
+  pointId: string;
+  primitiveIndex: number;
+  pointerStart: Vec2;
+  startCoords: Vec2;
+}
+
 interface Editable3DLabelGroup {
   primitiveIndex: number;
   primitive: DiagramPrimitive;
@@ -109,18 +116,26 @@ export default function GeometryRenderer({
   const transformX = useCallback((x: number): number => x * unit, [unit]);
   const transformY = useCallback((y: number): number => -y * unit, [unit]);
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const dragStateRef = useRef<LabelDragState | null>(null);
+  const labelDragStateRef = useRef<LabelDragState | null>(null);
+  const pointDragStateRef = useRef<PointDragState | null>(null);
 
   const [labelOverrides, setLabelOverrides] = useState<LabelOverrides>(
     data.label_overrides ?? {}
   );
   const labelOverridesRef = useRef<LabelOverrides>(data.label_overrides ?? {});
+  const [pointDraftCoords, setPointDraftCoords] = useState<Record<string, Vec2>>({});
+  const pointDraftCoordsRef = useRef<Record<string, Vec2>>({});
 
   useEffect(() => {
     const incomingOverrides = data.label_overrides ?? {};
     setLabelOverrides(incomingOverrides);
     labelOverridesRef.current = incomingOverrides;
   }, [data.label_overrides]);
+
+  useEffect(() => {
+    setPointDraftCoords({});
+    pointDraftCoordsRef.current = {};
+  }, [data.primitives]);
 
   const getSvgPointerCoords = useCallback(
     (clientX: number, clientY: number): Vec2 | null => {
@@ -205,7 +220,7 @@ export default function GeometryRenderer({
       }
 
       const startOffset = labelOverridesRef.current[labelKey] ?? { dx: 0, dy: 0 };
-      dragStateRef.current = {
+      labelDragStateRef.current = {
         labelKey,
         pointerStart: pointer,
         startOffset,
@@ -218,6 +233,70 @@ export default function GeometryRenderer({
       event.stopPropagation();
     },
     [editableLabels, getSvgPointerCoords]
+  );
+
+  const commitPointCoords = useCallback(
+    (primitiveIndex: number, nextCoords: Vec2) => {
+      if (!onDiagramDataChange) {
+        return;
+      }
+
+      const roundedCoords: Vec2 = [
+        Math.round(nextCoords[0] * 1000) / 1000,
+        Math.round(nextCoords[1] * 1000) / 1000,
+      ];
+
+      const nextPrimitives = data.primitives.map((primitive, index) => {
+        if (index !== primitiveIndex || primitive.type !== "point") {
+          return primitive;
+        }
+
+        return {
+          ...primitive,
+          coords: roundedCoords,
+        };
+      });
+
+      onDiagramDataChange({
+        ...data,
+        primitives: nextPrimitives,
+      });
+    },
+    [data, onDiagramDataChange]
+  );
+
+  const beginPointDrag = useCallback(
+    (
+      event: React.PointerEvent<SVGCircleElement>,
+      pointId: string,
+      primitiveIndex: number
+    ) => {
+      if (!editableLabels) {
+        return;
+      }
+
+      const pointer = getSvgPointerCoords(event.clientX, event.clientY);
+      if (!pointer) {
+        return;
+      }
+
+      const pointPrimitive = data.primitives[primitiveIndex];
+      if (!pointPrimitive || pointPrimitive.type !== "point" || pointPrimitive.id !== pointId) {
+        return;
+      }
+
+      pointDragStateRef.current = {
+        pointId,
+        primitiveIndex,
+        pointerStart: pointer,
+        startCoords: pointPrimitive.coords,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    [data.primitives, editableLabels, getSvgPointerCoords]
   );
 
   const estimateLabelBox = useCallback((text: string, fontSize: number) => {
@@ -234,7 +313,7 @@ export default function GeometryRenderer({
 
   const handleSvgPointerMove = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
-      if (!editableLabels || !dragStateRef.current) {
+      if (!editableLabels) {
         return;
       }
 
@@ -243,7 +322,30 @@ export default function GeometryRenderer({
         return;
       }
 
-      const { labelKey, pointerStart, startOffset } = dragStateRef.current;
+      if (pointDragStateRef.current) {
+        const { pointId, pointerStart, startCoords } = pointDragStateRef.current;
+        const nextCoords: Vec2 = [
+          startCoords[0] + (pointer[0] - pointerStart[0]) / unit,
+          startCoords[1] - (pointer[1] - pointerStart[1]) / unit,
+        ];
+
+        setPointDraftCoords((previous) => {
+          const next = {
+            ...previous,
+            [pointId]: nextCoords,
+          };
+          pointDraftCoordsRef.current = next;
+          return next;
+        });
+
+        return;
+      }
+
+      if (!labelDragStateRef.current) {
+        return;
+      }
+
+      const { labelKey, pointerStart, startOffset } = labelDragStateRef.current;
       const nextOffset: LabelOffset = {
         dx: startOffset.dx + (pointer[0] - pointerStart[0]),
         dy: startOffset.dy + (pointer[1] - pointerStart[1]),
@@ -258,17 +360,35 @@ export default function GeometryRenderer({
         return next;
       });
     },
-    [editableLabels, getSvgPointerCoords]
+    [editableLabels, getSvgPointerCoords, unit]
   );
 
-  const endLabelDrag = useCallback(() => {
-    if (!dragStateRef.current) {
+  const endInteractionDrag = useCallback(() => {
+    if (pointDragStateRef.current) {
+      const { pointId, primitiveIndex, startCoords } = pointDragStateRef.current;
+      const nextCoords = pointDraftCoordsRef.current[pointId] ?? startCoords;
+
+      pointDragStateRef.current = null;
+      setPointDraftCoords((previous) => {
+        const next = {
+          ...previous,
+        };
+        delete next[pointId];
+        pointDraftCoordsRef.current = next;
+        return next;
+      });
+
+      commitPointCoords(primitiveIndex, nextCoords);
       return;
     }
 
-    dragStateRef.current = null;
+    if (!labelDragStateRef.current) {
+      return;
+    }
+
+    labelDragStateRef.current = null;
     commitLabelOverrides(labelOverridesRef.current);
-  }, [commitLabelOverrides]);
+  }, [commitLabelOverrides, commitPointCoords]);
 
   const renderLabelText = useCallback(
     (options: RenderLabelOptions) => {
@@ -364,10 +484,15 @@ export default function GeometryRenderer({
 
   const getPointRawCoords = useCallback(
     (id: string): Vec2 | null => {
+      const draftPoint = pointDraftCoords[id];
+      if (draftPoint) {
+        return draftPoint;
+      }
+
       const point = pointMap.get(id);
       return point ?? null;
     },
-    [pointMap]
+    [pointDraftCoords, pointMap]
   );
 
   const getPointCoords = useCallback(
@@ -493,8 +618,8 @@ export default function GeometryRenderer({
         role="img"
         aria-label="Geometry diagram"
         onPointerMove={handleSvgPointerMove}
-        onPointerUp={endLabelDrag}
-        onPointerCancel={endLabelDrag}
+        onPointerUp={endInteractionDrag}
+        onPointerCancel={endInteractionDrag}
         style={editableLabels ? { touchAction: "none" } : undefined}
       >
         <defs>
@@ -535,6 +660,8 @@ export default function GeometryRenderer({
             transformX,
             transformY,
             renderLabelText,
+            editablePoints: editableLabels,
+            onPointPointerDown: beginPointDrag,
           });
 
           if (rendered2D !== undefined) {

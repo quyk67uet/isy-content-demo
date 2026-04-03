@@ -43,6 +43,12 @@ interface Render2DPrimitiveParams {
   transformX: (x: number) => number;
   transformY: (y: number) => number;
   renderLabelText: RenderLabelText;
+  editablePoints: boolean;
+  onPointPointerDown: (
+    event: React.PointerEvent<SVGCircleElement>,
+    pointId: string,
+    primitiveIndex: number
+  ) => void;
 }
 
 export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactNode | undefined {
@@ -64,6 +70,8 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
     transformX,
     transformY,
     renderLabelText,
+    editablePoints,
+    onPointPointerDown,
   } = params;
 
   switch (primitive.type) {
@@ -451,18 +459,30 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
     }
 
     case "point": {
-      const [x, y] = primitive.coords;
+      const pointCoords = getPointCoords(primitive.id);
+      if (!pointCoords) {
+        return null;
+      }
+
+      const [x, y] = pointCoords;
       const [offsetX, offsetY] = getPointLabelOffset(primitive.pos);
       const pointLabel = normalizeDiagramLabel(primitive.label ?? primitive.id);
 
       return (
         <g key={key}>
-          <circle cx={transformX(x)} cy={transformY(y)} r={4} fill={primitive.color ?? "#111827"} />
+          <circle
+            cx={x}
+            cy={y}
+            r={editablePoints ? 6 : 4}
+            fill={primitive.color ?? "#111827"}
+            style={editablePoints ? { cursor: "move" } : undefined}
+            onPointerDown={(event) => onPointPointerDown(event, primitive.id, index)}
+          />
           {pointLabel &&
             renderLabelText({
               labelKey: `primitive-${index}-point-label`,
-              x: transformX(x) + offsetX,
-              y: transformY(y) + offsetY,
+              x: x + offsetX,
+              y: y + offsetY,
               text: pointLabel,
               fill: "#111827",
               textAnchor: "start",
