@@ -263,6 +263,46 @@ export default function GeometryRenderer({
     [data, editableLabels, onDiagramDataChange]
   );
 
+  const togglePrimitiveStyle = useCallback(
+    (primitiveIndex: number) => {
+      if (!editableLabels || !onDiagramDataChange) {
+        return;
+      }
+
+      const target = data.primitives[primitiveIndex];
+      if (!target || target.type === "point" || target.type === "label") {
+        return;
+      }
+
+      const currentStyle: StrokeStyle = target.style ?? "solid";
+      const nextStyle: StrokeStyle = currentStyle === "solid" ? "dashed" : "solid";
+
+      const nextPrimitives = data.primitives.map((primitive, index) => {
+        if (index !== primitiveIndex) {
+          return primitive;
+        }
+
+        const nextPrimitive = {
+          ...primitive,
+        } as DiagramPrimitive & { style?: StrokeStyle };
+
+        if (nextStyle === "solid") {
+          delete nextPrimitive.style;
+        } else {
+          nextPrimitive.style = nextStyle;
+        }
+
+        return nextPrimitive;
+      });
+
+      onDiagramDataChange({
+        ...data,
+        primitives: nextPrimitives,
+      });
+    },
+    [data, editableLabels, onDiagramDataChange]
+  );
+
   const beginLabelDrag = useCallback(
     (event: React.PointerEvent<Element>, labelKey: string) => {
       if (!editableLabels) {
@@ -716,7 +756,9 @@ export default function GeometryRenderer({
             transformY,
             renderLabelText,
             editablePoints: editableLabels,
+            editableStrokeStyles: editableLabels,
             onPointPointerDown: beginPointDrag,
+            onTogglePrimitiveStyle: togglePrimitiveStyle,
           });
 
           if (rendered2D !== undefined) {

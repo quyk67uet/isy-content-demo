@@ -44,11 +44,13 @@ interface Render2DPrimitiveParams {
   transformY: (y: number) => number;
   renderLabelText: RenderLabelText;
   editablePoints: boolean;
+  editableStrokeStyles: boolean;
   onPointPointerDown: (
     event: React.PointerEvent<SVGCircleElement>,
     pointId: string,
     primitiveIndex: number
   ) => void;
+  onTogglePrimitiveStyle?: (primitiveIndex: number) => void;
 }
 
 export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactNode | undefined {
@@ -71,8 +73,21 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
     transformY,
     renderLabelText,
     editablePoints,
+    editableStrokeStyles,
     onPointPointerDown,
+    onTogglePrimitiveStyle,
   } = params;
+
+  const getStyleToggleProps = () => ({
+    onClick:
+      editableStrokeStyles && onTogglePrimitiveStyle
+        ? (event: React.MouseEvent<SVGElement>) => {
+            event.stopPropagation();
+            onTogglePrimitiveStyle(index);
+          }
+        : undefined,
+    style: editableStrokeStyles && onTogglePrimitiveStyle ? { cursor: "pointer" } : undefined,
+  });
 
   switch (primitive.type) {
     case "grid": {
@@ -210,6 +225,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -233,6 +249,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -263,6 +280,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -291,6 +309,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
           markerEnd="url(#geometry-arrow)"
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -314,6 +333,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -341,6 +361,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -375,6 +396,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
+          {...getStyleToggleProps()}
         />
       );
     }
@@ -415,6 +437,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
             stroke={markColor}
             strokeWidth={2}
             strokeDasharray={strokeDasharray}
+            {...getStyleToggleProps()}
           />
         );
       } else {
@@ -429,6 +452,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
             stroke={markColor}
             strokeWidth={2}
             strokeDasharray={strokeDasharray}
+            {...getStyleToggleProps()}
           />
         );
       }
@@ -551,6 +575,7 @@ export function render2DPrimitive(params: Render2DPrimitiveParams): React.ReactN
               stroke={primitive.color ?? "#2563eb"}
               strokeWidth={2}
               strokeDasharray={strokeDasharray}
+              {...getStyleToggleProps()}
             />
           ))}
         </g>
